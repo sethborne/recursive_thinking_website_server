@@ -1,2 +1,6 @@
 # venv
 **/venv
+
+# subfolders of delete and deploy stacks
+**/success
+**/error
