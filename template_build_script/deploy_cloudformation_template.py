@@ -210,20 +210,20 @@ stack_response = json.loads(status)
 # FOLDER NAME INFO FOR LOG DIRECTOR(IES)
 deployDatetime = datetime.datetime.now()
 dateString = deployDatetime.strftime("%Y%m%d")
-    timeString = deployDatetime.strftime("%H%M%S")
+timeString = deployDatetime.strftime("%H%M%S")
 
-    stackResponseInfoString = json.dumps(stack_response, indent=2, sort_keys=True)
+stackResponseInfoString = json.dumps(stack_response, indent=2, sort_keys=True)
 
 stackStatus = stack_response["Stacks"][0]["StackStatus"]
 
 # this needs the api value (same as the APIURL below)
 # This makes a "dev" Stage for the API and deploys it.
-check_output(
-    "aws apigateway create-deployment --rest-api-id {0} --stage-name dev --region={1}".format(
-        stack_response["Stacks"][0]["Outputs"][4]["OutputValue"], args.region
-    ),
-    shell=True,
-)
+# check_output(
+#     "aws apigateway create-deployment --rest-api-id {0} --stage-name dev --region={1}".format(
+#         stack_response["Stacks"][0]["Outputs"][4]["OutputValue"], args.region
+#     ),
+#     shell=True,
+# )
 
 if stackStatus in cloudformationDeploySuccessDictionary:
 
@@ -242,30 +242,30 @@ if stackStatus in cloudformationDeploySuccessDictionary:
     credentials = {
         "region": args.region,
         "userPoolId": stack_response["Stacks"][0]["Outputs"][1]["OutputValue"],
-        "userPoolWebClientId": stack_response["Stacks"][0]["Outputs"][2][
-            "OutputValue"
-        ],
-        "apiUrl": "https://{0}.execute-api.{1}.amazonaws.com/dev".format(
-            stack_response["Stacks"][0]["Outputs"][4]["OutputValue"],
-            args.region,
-        ),
+        # "userPoolWebClientId": stack_response["Stacks"][0]["Outputs"][2][
+        #     "OutputValue"
+        # ],
+        # "apiUrl": "https://{0}.execute-api.{1}.amazonaws.com/dev".format(
+        #     stack_response["Stacks"][0]["Outputs"][4]["OutputValue"],
+        #     args.region,
+        # ),
     }
 
     # Look for this in outputs
     # 'Description': 's3BucketName - Name of s3 Bucket', 'ExportName': 's3BucketName',
-    s3UploadInfo = {
-        "region": args.region,
-        "s3BucketName": stack_response["Stacks"][0]["Outputs"][3][
-            "OutputValue"
-        ],
-        "IdentityPoolId": stack_response["Stacks"][0]["Outputs"][0][
-            "OutputValue"
-        ],
-    }
+    # s3UploadInfo = {
+    #     "region": args.region,
+    #     "s3BucketName": stack_response["Stacks"][0]["Outputs"][3][
+    #         "OutputValue"
+    #     ],
+    #     "IdentityPoolId": stack_response["Stacks"][0]["Outputs"][0][
+    #         "OutputValue"
+    #     ],
+    # }
 
     # CONVERT DICTIONARIES TO JSON
     credentialsString = json.dumps(credentials, indent=2, sort_keys=True)
-    s3UploadInfoString = json.dumps(s3UploadInfo, indent=2, sort_keys=True)
+    # s3UploadInfoString = json.dumps(s3UploadInfo, indent=2, sort_keys=True)
     maybeWebsitePath = realpath(args.website_directory)
 
     # WRITE STACK SECRET DATA TO FILE
@@ -283,15 +283,15 @@ if stackStatus in cloudformationDeploySuccessDictionary:
         cognitoSecrets.write(credentialsString)
         cognitoSecrets.close()
         print("    Wrote secrets to ", cognitoSecretsPath)
-        s3UploadSecretsPath = abspath(
-            join(
-                maybeWebsitePath, "credentials/secrets", "s3UploadSecrets.json"
-            )
-        )
-        s3UploadSecrets = safeOpen(s3UploadSecretsPath, "w")
-        s3UploadSecrets.write(s3UploadInfoString)
-        s3UploadSecrets.close()
-        print("    Wrote secrets to ", s3UploadSecretsPath)
+        # s3UploadSecretsPath = abspath(
+        #     join(
+        #         maybeWebsitePath, "credentials/secrets", "s3UploadSecrets.json"
+        #     )
+        # )
+        # s3UploadSecrets = safeOpen(s3UploadSecretsPath, "w")
+        # s3UploadSecrets.write(s3UploadInfoString)
+        # s3UploadSecrets.close()
+        # print("    Wrote secrets to ", s3UploadSecretsPath)
         print(
             "    If this isn't what you expected, please use the --website-directory argument."
         )
@@ -305,11 +305,11 @@ if stackStatus in cloudformationDeploySuccessDictionary:
             "./recursive_thinking_website/secrets/credentials/cognitoSecrets.json"
         )
         print(credentialsString)
-        print("")
-        print(
-            "./recursive_thinking_website/credentials/secrets/s3UploadSecrets.json"
-        )
-        print(s3UploadInfoString)
+        # print("")
+        # print(
+        #     "./recursive_thinking_website/credentials/secrets/s3UploadSecrets.json"
+        # )
+        # print(s3UploadInfoString)
         print("")
 
 else:

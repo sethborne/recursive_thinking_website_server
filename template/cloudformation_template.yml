@@ -209,6 +209,46 @@ Resources:
       Tags:
         - Key: project
           Value: RecursiveThinkingWebsite
+  # ================================================================================
+
+  # AWS::ApiGateway::RestApi
+
+  # Base api.  This needs resources and methods to work.
+
+  # ================================================================================
+
+  RecursiveThinkingAPI:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: "RecursiveThinkingAPI"
+      EndpointConfiguration:
+        Types:
+          - "REGIONAL"
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ================================================================================
+
+  # AWS::ApiGateway::Authorizer
+
+  # This is our Authorizer on our API's.  In this case its configured to look for a valid Cognito IdToken in the Authorization header of the request.
+
+  # Our API's will check that IDToken with the specified Cognito User Pool and determine whether or not to send the request on to the lambda that will process the request.
+
+  # Users get a cookie in their local storage when they sign in with cognito we can use for all our API Calls to the backend.
+
+  # ================================================================================
+
+  RecursiveThinkingAuthorizer:
+    Type: "AWS::ApiGateway::Authorizer"
+    Properties:
+      IdentitySource: "method.request.header.Authorization"
+      Name: "RecursiveThinkingCognitoAuthorizer"
+      ProviderARNs:
+        - !GetAtt RecursiveThinkingUserPool.Arn
+      RestApiId: !Ref RecursiveThinkingAPI
+      Type: "COGNITO_USER_POOLS"
 
 # ================================================================================
 
@@ -252,3 +292,9 @@ Outputs:
     Value: !Ref RecursiveThinkingUserAssetsS3Bucket
     Export:
       Name: "s3BucketName"
+
+  APIGatewayId:
+    Description: apiUrl - The base id of the api, used for constructing the api url to make requests
+    Value: !Ref RecursiveThinkingAPI
+    Export:
+      Name: APIGatewayIdentifier
