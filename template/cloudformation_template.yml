@@ -97,6 +97,119 @@ Resources:
       RefreshTokenValidity: 30
       UserPoolId: !Ref RecursiveThinkingUserPool
 
+  # ----------------------------------------------------------------------
+  # Creates the Federated Identity Pool -
+  # TUsed specifically to allow users to upload to s3
+  # ----------------------------------------------------------------------
+
+  RecursiveThinkingIdentityPoolForS3:
+    Type: "AWS::Cognito::IdentityPool"
+    Properties:
+      IdentityPoolName: "RecursiveThinkingIdentityPoolForS3"
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders:
+        - ClientId: !Ref RecursiveThinkingUserPoolClient
+          ProviderName: !GetAtt RecursiveThinkingUserPool.ProviderName
+
+  # ----------------------------------------------------------------------
+  # Create a role for unauthorized access to AWS resources. Very limited access. Only allows users in the previously created Identity Pool
+  # ----------------------------------------------------------------------
+
+  CognitoUnAuthorizedRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Federated: "cognito-identity.amazonaws.com"
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud": !Ref RecursiveThinkingIdentityPoolForS3
+              "ForAnyValue:StringLike":
+                "cognito-identity.amazonaws.com:amr": unauthenticated
+      Policies:
+        - PolicyName: "CognitoUnauthorizedPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "mobileanalytics:PutEvents"
+                  - "cognito-sync:*"
+                  - "s3:*"
+                Resource:
+                  - "*"
+                  - !Join ["", ["arn:aws:s3:::", !Ref UserAssetsS3Bucket, "/*"]]
+
+  CognitoAuthorizedRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Federated: "cognito-identity.amazonaws.com"
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud": !Ref RecursiveThinkingIdentityPoolForS3
+              "ForAnyValue:StringLike":
+                "cognito-identity.amazonaws.com:amr": authenticated
+      Policies:
+        - PolicyName: "CognitoAuthorizedPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "mobileanalytics:PutEvents"
+                  - "cognito-sync:*"
+                  - "cognito-identity:*"
+                Resource: "*"
+
+  # ----------------------------------------------------------------------
+  # Assigns the roles to the Identity Pool
+  # ----------------------------------------------------------------------
+
+  RecursiveThinkingIdentityPoolRoleMapping:
+    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+    Properties:
+      IdentityPoolId: !Ref RecursiveThinkingIdentityPoolForS3
+      Roles:
+        authenticated: !GetAtt CognitoAuthorizedRole.Arn
+        unauthenticated: !GetAtt CognitoUnAuthorizedRole.Arn
+
+  # ================================================================================
+  # S3 Bucket - To Store Resumes and Avatars per user
+  # ================================================================================
+
+  RecursiveThinkingUserAssetsS3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      AccessControl: PublicReadWrite
+      BucketName: !Ref UserAssetsS3Bucket
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - HEAD
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            AllowedHeaders:
+              - "*"
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
 # ================================================================================
 
 # CLOUDFORMATION STACK - OUTPUTS
@@ -127,3 +240,15 @@ Outputs:
     Value: !Ref RecursiveThinkingUserPoolClient
     Export:
       Name: CognitoUserPoolClientIdentifier
+
+  CognitoIdentityPoolId:
+    Description: IdentityPoolId - Export for s3 Bucket
+    Value: !Ref RecursiveThinkingIdentityPoolForS3
+    Export:
+      Name: "RecursiveThinkingIdentityPoolForS3::Id"
+
+  s3BucketName:
+    Description: s3BucketName - Name of s3 Bucket
+    Value: !Ref RecursiveThinkingUserAssetsS3Bucket
+    Export:
+      Name: "s3BucketName"
