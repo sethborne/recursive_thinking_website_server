@@ -250,6 +250,1037 @@ Resources:
       RestApiId: !Ref RecursiveThinkingAPI
       Type: "COGNITO_USER_POOLS"
 
+  # ================================================================================
+
+  # AWS::ApiGateway::Resource
+
+  # The resources we define for our API.  These are equivelant to the URL path we make the request to. e.g. BASEAPIURL.com/resourcepath where resourcepath is more like /developers/{id} or something.
+
+  # ================================================================================
+
+  # ----------------------------------------------------------------------
+  # /users/
+  # ----------------------------------------------------------------------
+
+  APIResourceUsers:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt RecursiveThinkingAPI.RootResourceId
+      PathPart: "users"
+      RestApiId: !Ref RecursiveThinkingAPI
+
+  # ----------------------------------------------------------------------
+  # /users/{id}
+  # ----------------------------------------------------------------------
+
+  APIResourceUserById:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref APIResourceUsers
+      PathPart: "{id}"
+      RestApiId: !Ref RecursiveThinkingAPI
+
+  # ----------------------------------------------------------------------
+  # /homescreenquotes/ - homescreenquote
+  # ----------------------------------------------------------------------
+
+  APIResourceHomeScreenQuotes:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt RecursiveThinkingAPI.RootResourceId
+      PathPart: "homescreenquotes"
+      RestApiId: !Ref RecursiveThinkingAPI
+
+  # ----------------------------------------------------------------------
+  # /homescreenquotes/{id} - homescreenquote by Id
+  # ----------------------------------------------------------------------
+
+  APIResourceHomeScreenQuoteById:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref APIResourceHomeScreenQuotes
+      PathPart: "{id}"
+      RestApiId: !Ref RecursiveThinkingAPI
+
+  #================================================================================
+
+  # AWS::ApiGateway::Method
+
+  # The HTTP Method that gets attached to a API Gateway Resource.
+
+  # Could be GET, POST, PUT, DELETE ... etc.  We define that the method will be a proxy, meaning it will route all requests to a Lambda for processing.  We also define to use our Cognito Authorizer to determine if the request is ok to proceed.
+
+  # ================================================================================
+
+  # ----------------------------------------------------------------------
+  # GET (ALL) - /users/
+  # ----------------------------------------------------------------------
+  APIResourceUsersGet:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "GET"
+      ResourceId: !Ref APIResourceUsers
+      RestApiId: !Ref RecursiveThinkingAPI
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UsersGetAll.Arn}/invocations
+
+  # ----------------------------------------------------------------------
+  # POST (ALL) - /users/
+  # ----------------------------------------------------------------------
+  APIResourceUsersPost:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "POST"
+      ResourceId: !Ref APIResourceUsers
+      RestApiId: !Ref RecursiveThinkingAPI
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UsersPost.Arn}/invocations
+
+  # ----------------------------------------------------------------------
+  # PREFLIGHT - GET | POST (ALL)  - /users/
+  # ----------------------------------------------------------------------
+
+  APIResourceUsersCORSGetAndPostOptions:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: RecursiveThinkingAPI
+      ResourceId:
+        Ref: APIResourceUsers
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # ----------------------------------------------------------------------
+  # GET - /users/{id}
+  # ----------------------------------------------------------------------
+  APIResourceGetUserById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "GET"
+      ResourceId: !Ref APIResourceUserById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserGetById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # DELETE - /users/{id}
+  # ----------------------------------------------------------------------
+  APIResourceDeleteUserById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "DELETE"
+      ResourceId: !Ref APIResourceUserById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserDeleteById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # PUT - /users/{id}
+  # ----------------------------------------------------------------------
+  APIResourcePutUserById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "PUT"
+      ResourceId: !Ref APIResourceUserById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserPutById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # PATCH - /users/{id}
+  # ----------------------------------------------------------------------
+  APIResourcePatchUserById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "PATCH"
+      ResourceId: !Ref APIResourceUserById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserPatchById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # PREFLIGHT - GET | PUT | PATCH | DELETE - /users/{id}
+  # ----------------------------------------------------------------------
+
+  APIResourceUserByIdCORSGetDeletePutOptions:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: RecursiveThinkingAPI
+      ResourceId:
+        Ref: APIResourceUserById
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,PUT,PATCH,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # ----------------------------------------------------------------------
+  # GET (ALL) - /homescreenquotes/
+  # ----------------------------------------------------------------------
+
+  APIResourceHomeScreenQuotesGet:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      AuthorizationType: "NONE"
+      # AuthorizationType: "COGNITO_USER_POOLS"
+      # AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "GET"
+      ResourceId: !Ref APIResourceHomeScreenQuotes
+      RestApiId: !Ref RecursiveThinkingAPI
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HomeScreenQuotesGetAll.Arn}/invocations
+
+  # ----------------------------------------------------------------------
+  # POST - /homescreenquotes/
+  # ----------------------------------------------------------------------
+
+  APIResourceHomeScreenQuotesPost:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "POST"
+      ResourceId: !Ref APIResourceHomeScreenQuotes
+      RestApiId: !Ref RecursiveThinkingAPI
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HomeScreenQuotesPost.Arn}/invocations
+
+  # ----------------------------------------------------------------------
+  # PREFLIGHT - GET | POST (ALL)  - /homescreenquotes/
+  # ----------------------------------------------------------------------
+
+  APIResourceHomeScreenQuotesCORSGetAndPostOptions:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: RecursiveThinkingAPI
+      ResourceId:
+        Ref: APIResourceHomeScreenQuotes
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # ================================================================
+  # GET - /homescreenquotes/{id}
+  # ================================================================
+
+  APIResourceHomeScreenQuoteRankById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "GET"
+      ResourceId: !Ref APIResourceHomeScreenQuoteById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HomeScreenQuoteGetById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # DELETE - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  APIResourceDeleteHomeScreenQuoteById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "DELETE"
+      ResourceId: !Ref APIResourceHomeScreenQuoteById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HomeScreenQuoteDeleteById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # PUT - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  APIResourcePutHomeScreenQuoteById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "PUT"
+      ResourceId: !Ref APIResourceHomeScreenQuoteById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HomeScreenQuotePutById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # PATCH - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  APIResourcePatchHomeScreenQuoteById:
+    Type: "AWS::ApiGateway::Method"
+    # DependsOn: RecursiveThinkingAuthorizer
+    Properties:
+      # ApiKeyRequired: False
+      # AuthorizationType: "NONE"
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId: !Ref RecursiveThinkingAuthorizer
+      HttpMethod: "PATCH"
+      ResourceId: !Ref APIResourceHomeScreenQuoteById
+      RestApiId: !Ref RecursiveThinkingAPI
+      # RequestParameters:
+      # method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HomeScreenQuotePatchById.Arn}/invocations
+        # CacheKeyParameters:
+        #   - 'method.request.path.id'
+        # RequestParameters:
+        # integration.request.path.id: 'method.request.path.id'
+
+  # ----------------------------------------------------------------------
+  # PREFLIGHT - GET | PUT | PATCH | DELETE -  /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  APIResourceHomeScreenQuoteByIdCORSGetDeletePutPatchOptions:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: RecursiveThinkingAPI
+      ResourceId:
+        Ref: APIResourceHomeScreenQuoteById
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,PUT,PATCH,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # ================================================================================
+
+  # AWS::Lambda::Permission
+
+  # Lambda Functions need this to allow other AWS Services to invoke them.  In this case we specify API Gateway as the principal so that our functions can be invoked by our API.  We can have as many of these attached to a Lambda as we need things to invoke it.
+
+  # Action = IAM action ( in this case lambda:* ) meaning anything, we prob just need lambda:Invoke.
+
+  # FunctionName = Name of function to attach the permission to.
+  # Principal = The service that will have permission to invoke the function.
+
+  # FROM THE CONSOLE, if you load a Lambda into an Integration Request, you'll get a dialogue like this:
+  # Add Permission to Lambda Function
+  # You are about to give API Gateway permission to invoke your Lambda function:
+  # arn:aws:lambda:us-west-2:918861449844:function:<functionName>
+
+  # ================================================================================
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - GET - /users/
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionUsersGetAll:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: !Ref UsersGetAll
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - POST - /users/
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionUsersPost:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref UsersPost
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - GET - /users/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionGetUserById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref UserGetById
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - DELETE - /users/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionDeleteUserById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref UserDeleteById
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - PUT - /users/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionPutUserById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref UserPutById
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - PATCH - /users/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionPatchUserById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref UserPatchById
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - GET - /homescreenquotes/
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionHomeScreenQuotesGetAll:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: !Ref HomeScreenQuotesGetAll
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - POST - /homescreenquotes/
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionHomeScreenQuotesPost:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      FunctionName: !Ref HomeScreenQuotesPost
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - GET - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionHomeScreenQuoteGetById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref HomeScreenQuoteGetById
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - DELETE - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionHomeScreenQuoteDeleteById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref HomeScreenQuoteDeleteById
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - PUT - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionHomeScreenQuotePutById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref HomeScreenQuotePutById
+      Principal: apigateway.amazonaws.com
+
+  # ----------------------------------------------------------------------
+  # PERMISSION - PATCH - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  LambdaPermissionHomeScreenQuotePatchById:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:*
+      # Action: "lambda:InvokeFunction"
+      FunctionName: !Ref HomeScreenQuotePatchById
+      Principal: apigateway.amazonaws.com
+
+  # ================================================================================
+
+  # AWS::Lambda::Function
+
+  # Lambda functions! We point to the AssetsS3Bucket and a zip file equal to the functions name, as our code source.  (This all gets created in our Python Script).
+
+  # Our functions need the DynamoDB Table name as an environment variable so we DependsOn that. The role defined here is a reference to an IAM role the function will assume, it gives the function power to do things with other AWS services (such as read/write to DynamoDB)
+
+  # ================================================================================
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - GET - /users/
+  # ----------------------------------------------------------------------
+
+  UsersGetAll:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingUsers
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/UsersGetAll.zip"]]
+      Description: "Users Get All"
+      FunctionName: "UsersGetAll"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingUsers
+      Handler: index.UsersGetAll
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoScanAndGetItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - POST - /users/
+  # ----------------------------------------------------------------------
+
+  UsersPost:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingUsers
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/UsersPost.zip"]]
+      Description: "Users Post"
+      FunctionName: "UsersPost"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingUsers
+      Handler: index.UsersPost
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoPostItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - GET - /users/{id}
+  # ----------------------------------------------------------------------
+
+  UserGetById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingUsers
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/UserGetById.zip"]]
+      Description: "Get User By Id"
+      FunctionName: "UserGetById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingUsers
+      Handler: index.UserGetById
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoScanAndGetItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - DELETE - /users/{id}
+  # ----------------------------------------------------------------------
+
+  UserDeleteById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingUsers
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/UserDeleteById.zip"]]
+      Description: "Delete User By Id"
+      FunctionName: "UserDeleteById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingUsers
+      Handler: index.UserDeleteById
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoDeleteItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - PUT - /users/{id}
+  # ----------------------------------------------------------------------
+
+  UserPutById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingUsers
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/UserPutById.zip"]]
+      Description: "Put User By Id"
+      FunctionName: "UserPutById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingUsers
+      Handler: index.UserPutById
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoPostItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - PATCH - /users/{id}
+  # ----------------------------------------------------------------------
+
+  UserPatchById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingUsers
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/UserPatchById.zip"]]
+      Description: "Patch User By Id"
+      FunctionName: "UserPatchById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingUsers
+      Handler: index.UserPatchById
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoPostItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - GET - /homescreenquotes/
+  # ----------------------------------------------------------------------
+
+  HomeScreenQuotesGetAll:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingHomeScreenQuotes
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/HomeScreenQuotesGetAll.zip"]]
+      Description: "Home Screen Quotes Get All"
+      FunctionName: "HomeScreenQuotesGetAll"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingHomeScreenQuotes
+      Handler: index.HomeScreenQuotesGetAll
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoScanAndGetItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - POST - /homescreenquotes/
+  # ----------------------------------------------------------------------
+
+  HomeScreenQuotesPost:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingHomeScreenQuotes
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/HomeScreenQuotesPost.zip"]]
+      Description: "Home Screen Quotes Post"
+      FunctionName: "HomeScreenQuotesPost"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingHomeScreenQuotes
+      Handler: index.HomeScreenQuotesPost
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoPostItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - GET - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  HomeScreenQuoteGetById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingHomeScreenQuotes
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/HomeScreenQuoteGetById.zip"]]
+      Description: "HomeScreenQuote By Id"
+      FunctionName: "HomeScreenQuoteGetById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingHomeScreenQuotes
+      Handler: index.HomeScreenQuoteGetById
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoScanAndGetItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - DELETE - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  HomeScreenQuoteDeleteById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingHomeScreenQuotes
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/HomeScreenQuoteDeleteById.zip"]]
+      Description: "HomeScreenQuote By Id"
+      FunctionName: "HomeScreenQuoteDeleteById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingHomeScreenQuotes
+      Handler: index.RecursiveThinkingHomeScreenQuotes
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoDeleteItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - PUT - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  HomeScreenQuotePutById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingHomeScreenQuotes
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/HomeScreenQuotePutById.zip"]]
+      Description: "HomeScreenQuote Rank By Id"
+      FunctionName: "HomeScreenQuotePutById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingHomeScreenQuotes
+      Handler: index.HomeScreenQuotePutById
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoPostItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # LAMBDA - PATCH - /homescreenquotes/{id}
+  # ----------------------------------------------------------------------
+
+  HomeScreenQuotePatchById:
+    Type: "AWS::Lambda::Function"
+    DependsOn: RecursiveThinkingHomeScreenQuotes
+    Properties:
+      Code:
+        S3Bucket: !Ref AssetsS3Bucket
+        S3Key: !Join ["", [!Ref LambdaFolder, "/HomeScreenQuotePatchById.zip"]]
+      Description: "HomeScreenQuote Rank By Id"
+      FunctionName: "HomeScreenQuotePatchById"
+      Environment:
+        Variables:
+          TABLE: !Ref RecursiveThinkingHomeScreenQuotes
+      Handler: index.HomeScreenQuotePatchById
+      MemorySize: 128
+      Role: !GetAtt RTWIAMRoleLambda.Arn
+      # Role: !GetAtt RTWIAMRoleLambdaForDynamoPostItem.Arn
+      # Runtime: nodejs8.10
+      Runtime: nodejs12.x
+      Timeout: 8
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ================================================================================
+
+  # AWS::DynamoDB::Table
+
+  # DynamoDB tables.  They must specify at least one primary key.  The primary key has to be unique across all records in the table, so we specify type HASH.
+
+  # ================================================================================
+
+  # ----------------------------------------------------------------------
+  # DYNAMODB TABLE - /users/
+  # ----------------------------------------------------------------------
+
+  RecursiveThinkingUsers:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        # - AttributeName: "userId"
+        - AttributeName: "id"
+          AttributeType: "S"
+      KeySchema:
+        # - AttributeName: "userId"
+        - AttributeName: "id"
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: "RecursiveThinkingUsers"
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
+  # ----------------------------------------------------------------------
+  # DYNAMODB - Master Table for HomeScreen Quotes
+  # ----------------------------------------------------------------------
+
+  RecursiveThinkingHomeScreenQuotes:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "id"
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: "RecursiveThinkingHomeScreenQuotes"
+      Tags:
+        - Key: project
+          Value: RecursiveThinkingWebsite
+
 # ================================================================================
 
 # CLOUDFORMATION STACK - OUTPUTS
