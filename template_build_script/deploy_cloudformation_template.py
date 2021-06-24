@@ -181,7 +181,7 @@ for subdir in os.listdir(args.assets):
 
         # ----------------------------------- END FOR PC -----------------------------------
 
-        # Do you want to see the .zip filesas they upload?  IF SO, KEEP BELOW ON.  IF NOT, COMMENT BELOW OUT
+        # Do you want to see the .zip files as they upload?  IF SO, KEEP BELOW ON.  IF NOT, COMMENT BELOW OUT
         call("rm -f {0}".format(zip_file_path), shell=True)
 
 # execute the cloudformation update
@@ -196,6 +196,36 @@ call(
     ),
     shell=True,
 )
+
+# COPY ASSETS TO S3 Bucket
+# aws s3 cp my-data-dir/ s3://my-s3-bucket/data/ --recursive
+# local directory is /avatars
+# call(
+#     "aws s3 cp ../assets/avatars/ s3://{0}/avatars/ --recursive".format(
+#         userAssetsS3Bucket
+#     ),
+#     shell=True,
+# )
+
+# uploads information to Dynamo Database
+# tables holds the names of the tables to upload
+tables = [
+    "RecursiveThinkingUsers",
+    # RecursiveThinkingLessons
+    # RecursiveThinkingInterviewQuestions
+    # RecursiveThinkingInterviewQuestionsAnswers
+    # RecursiveThinkingSkills
+    # RecursiveThinkingRanks,
+    "RecursiveThinkingHomeScreenQuotes",
+]
+
+for table in tables:
+    call(
+        "aws dynamodb batch-write-item --request-items file://../database_mock_data/_database_fill/{1}.json --region={0}".format(
+            args.region, table
+        ),
+        shell=True,
+    )
 
 # get stack info
 status = check_output(
