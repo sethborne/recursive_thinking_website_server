@@ -1,0 +1,24 @@
+{
+  "name": "mock_data_for_databases",
+  "version": "1.0.0",
+  "description": "Provide mock data for data tables for the Recursive Thinking Web Application",
+  "main": "",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    ""
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "aws-sdk": "^2.932.0",
+    "chalk": "^4.1.1",
+    "uuid": "^8.3.2"
+  },
+  "type": "module"
+}

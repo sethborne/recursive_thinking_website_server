@@ -3,4 +3,8 @@
 
 # subfolders of delete and deploy stacks
 **/success
-**/error
+**/errors
+
+#sub
+**/node_modules
+**/_arch
