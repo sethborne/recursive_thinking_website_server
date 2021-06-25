@@ -315,7 +315,7 @@ Resources:
   # ----------------------------------------------------------------------
   # GET (ALL) - /users/
   # ----------------------------------------------------------------------
-  APIResourceUsersGet:
+  APIMethodUsersGet:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -334,7 +334,7 @@ Resources:
   # ----------------------------------------------------------------------
   # POST (ALL) - /users/
   # ----------------------------------------------------------------------
-  APIResourceUsersPost:
+  APIMethodUsersPost:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -354,7 +354,7 @@ Resources:
   # PREFLIGHT - GET | POST (ALL)  - /users/
   # ----------------------------------------------------------------------
 
-  APIResourceUsersCORSGetAndPostOptions:
+  APIMethodUsersCORSGetAndPostOptions:
     Type: "AWS::ApiGateway::Method"
     Properties:
       AuthorizationType: NONE
@@ -388,7 +388,7 @@ Resources:
   # ----------------------------------------------------------------------
   # GET - /users/{id}
   # ----------------------------------------------------------------------
-  APIResourceGetUserById:
+  APIMethodGetUserById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -413,7 +413,7 @@ Resources:
   # ----------------------------------------------------------------------
   # DELETE - /users/{id}
   # ----------------------------------------------------------------------
-  APIResourceDeleteUserById:
+  APIMethodDeleteUserById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -438,7 +438,7 @@ Resources:
   # ----------------------------------------------------------------------
   # PUT - /users/{id}
   # ----------------------------------------------------------------------
-  APIResourcePutUserById:
+  APIMethodPutUserById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -463,7 +463,7 @@ Resources:
   # ----------------------------------------------------------------------
   # PATCH - /users/{id}
   # ----------------------------------------------------------------------
-  APIResourcePatchUserById:
+  APIMethodPatchUserById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -489,7 +489,7 @@ Resources:
   # PREFLIGHT - GET | PUT | PATCH | DELETE - /users/{id}
   # ----------------------------------------------------------------------
 
-  APIResourceUserByIdCORSGetDeletePutOptions:
+  APIMethodUserByIdCORSGetDeletePutOptions:
     Type: "AWS::ApiGateway::Method"
     Properties:
       AuthorizationType: NONE
@@ -524,7 +524,7 @@ Resources:
   # GET (ALL) - /homescreenquotes/
   # ----------------------------------------------------------------------
 
-  APIResourceHomeScreenQuotesGet:
+  APIMethodHomeScreenQuotesGet:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -544,7 +544,7 @@ Resources:
   # POST - /homescreenquotes/
   # ----------------------------------------------------------------------
 
-  APIResourceHomeScreenQuotesPost:
+  APIMethodHomeScreenQuotesPost:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -564,7 +564,7 @@ Resources:
   # PREFLIGHT - GET | POST (ALL)  - /homescreenquotes/
   # ----------------------------------------------------------------------
 
-  APIResourceHomeScreenQuotesCORSGetAndPostOptions:
+  APIMethodHomeScreenQuotesCORSGetAndPostOptions:
     Type: "AWS::ApiGateway::Method"
     Properties:
       AuthorizationType: NONE
@@ -599,7 +599,7 @@ Resources:
   # GET - /homescreenquotes/{id}
   # ================================================================
 
-  APIResourceHomeScreenQuoteRankById:
+  APIMethodHomeScreenQuoteRankById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -625,7 +625,7 @@ Resources:
   # DELETE - /homescreenquotes/{id}
   # ----------------------------------------------------------------------
 
-  APIResourceDeleteHomeScreenQuoteById:
+  APIMethodDeleteHomeScreenQuoteById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -651,7 +651,7 @@ Resources:
   # PUT - /homescreenquotes/{id}
   # ----------------------------------------------------------------------
 
-  APIResourcePutHomeScreenQuoteById:
+  APIMethodPutHomeScreenQuoteById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -677,7 +677,7 @@ Resources:
   # PATCH - /homescreenquotes/{id}
   # ----------------------------------------------------------------------
 
-  APIResourcePatchHomeScreenQuoteById:
+  APIMethodPatchHomeScreenQuoteById:
     Type: "AWS::ApiGateway::Method"
     # DependsOn: RecursiveThinkingAuthorizer
     Properties:
@@ -703,7 +703,7 @@ Resources:
   # PREFLIGHT - GET | PUT | PATCH | DELETE -  /homescreenquotes/{id}
   # ----------------------------------------------------------------------
 
-  APIResourceHomeScreenQuoteByIdCORSGetDeletePutPatchOptions:
+  APIMethodHomeScreenQuoteByIdCORSGetDeletePutPatchOptions:
     Type: "AWS::ApiGateway::Method"
     Properties:
       AuthorizationType: NONE
