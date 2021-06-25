@@ -8,3 +8,5 @@
 #sub
 **/node_modules
 **/_arch
+
+**/_mock_data_fill
