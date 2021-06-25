@@ -85,9 +85,11 @@ export const DICTIONARY_MODEL = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   },
-  homeScreenQuote: {
+  homeScreen: {
     id: 'id',
     quote: 'quote',
+    isInQuotes: 'isInQuotes',
+    isInCarousel: 'isInCarousel',
     _createdByUser: '_createdByUser',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
